@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: .next2
           target: opub-deploy
-      - name: executing remote ssh commands using password
+      - name: Update with new Build
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
