@@ -1,0 +1,41 @@
+name: Deploy Next.js to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Rename .next to .next2
+        run: mv .next .next2
+
+      - name: Send .next2 to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: .next2
+          target: /opub-deploy
+
+      - name: Delete old .next on EC2
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'rm -rf /opub-deploy/.next'
+
+      - name: Rename .next2 to .next
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'mv /path/to/remote/directory/.next2 /path/to/remote/directory/.next'
+
+      - name: Restart server
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'pm2 restart opub-deploy'
