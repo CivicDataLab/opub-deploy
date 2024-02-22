@@ -29,13 +29,13 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: .next2
-          target: /opub-deploy
+          target: opub-deploy
 
       - name: Delete old .next on EC2
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'rm -rf /opub-deploy/.next'
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'rm -rf opub-deploy/.next'
 
       - name: Rename .next2 to .next
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'mv /path/to/remote/directory/.next2 /path/to/remote/directory/.next'
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'mv opub-deploy/.next2 opub-deploy/.next'
 
       - name: Restart server
         run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'pm2 restart opub-deploy'
