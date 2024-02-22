@@ -31,11 +31,5 @@ jobs:
           source: .next2
           target: opub-deploy
 
-      - name: Delete old .next on EC2
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'rm -rf opub-deploy/.next'
-
-      - name: Rename .next2 to .next
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'mv opub-deploy/.next2 opub-deploy/.next'
-
-      - name: Restart server
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'pm2 restart opub-deploy'
+      - name: Update built folder
+        run: ssh -i ${{ secrets.EC2_PRIVATE_KEY }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'rm -rf opub-deploy/.next; mv opub-deploy/.next2 opub-deploy/.next; pm2 restart opub-deploy'
