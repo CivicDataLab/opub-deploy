@@ -131,8 +131,10 @@ Install the dependencies and start the server:
 ```bash
 npm install
 npm run build
-pm2 start npm --name opub-deploy -- run start -- -p 3000
+pm2 start npm -n deploy -- start
 ```
+
+> for custom port `pm2 start npm -n deploy -- start -- -p 3001`
 
 ## Adding SSH Key to GitHub
 
