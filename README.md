@@ -2,11 +2,111 @@
 
 This guide will help you set up a Next.js project to automatically deploy to an EC2 instance using GitHub Actions.
 
-## GitHub Repository Setup
+## Quick Start
+
+Use the following if you already have a project deployed on EC2. Otherwise, follow the [detailed guide](#detailed-guide).
+
+### PM2 Setup
+
+```bash
+// EC2
+sudo apt update
+npm install pm2 -g
+
+sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node"
+sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm" "/usr/local/bin/npm"
+sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pm2" "/usr/local/bin/pm2"
+
+// project directory
+pm2 start npm -n deploy -- start
+```
+
+> for custom port `pm2 start npm -n deploy -- start -- -p 3001`
+
+### Adding SSH Key to GitHub
+
+1. Generate a SSH key in EC2 (skip if already have one):
+
+```bash
+ssh-keygen -m PEM
+```
+
+2. Move the public key to authorized_keys:
+
+```bash
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+```
+
+3. Copy the private key content:
+
+```bash
+cat ~/.ssh/id_rsa
+// Copy the content manually
+```
+
+4. In GitHub, navigate to Repository > Settings > Secrets and variables > Actions and create the following three secrets:
+
+   - `EC2_HOST`: Public IP of your EC2 instance
+
+   - `EC2_USERNAME`: Username to SSH into EC2
+
+   - `EC2_PRIVATE_KEY`: Paste the private key content generated earlier.
+
+### Action Setup
+
+Add the following code to `.github/workflows/deploy.yml` in your project:
+
+```yaml
+name: Deploy App to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Rename .next to .next2
+        run: mv .next .next2
+
+      - name: Send .next2 to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: .next2
+          target: opub-deploy
+      - name: Update with new Build
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: rm -rf opub-deploy/.next; mv opub-deploy/.next2 opub-deploy/.next; pm2 restart opub-deploy
+```
+
+> Replace all instances `opub-deploy` with your project name in EC2.
+
+## Detailed Guide
+
+### GitHub Repository Setup
 
 Create a GitHub repository, for example: `opub-deploy`.
 
-## Local Development Setup
+### Local Development Setup
 
 1.  Generate a Next.js project:
 
@@ -73,9 +173,9 @@ git commit -m "first commit"
 git push -u origin main
 ```
 
-## Server Setup
+### Server Setup
 
-### EC2 Setup
+#### EC2 Setup
 
 1.  Create an EC2 instance with Ubuntu 20.04.
 2.  Create a new key pair and download the `.pem` file.
@@ -90,7 +190,7 @@ git push -u origin main
 ssh -i "path/to/key.pem" username@publicIP
 ```
 
-### Add packages
+#### Add packages
 
 Install Node.js and npm using [NVM](https://github.com/nvm-sh/nvm):
 
@@ -117,7 +217,7 @@ sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm" "/usr/local/bin/npm"
 sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pm2" "/usr/local/bin/pm2"
 ```
 
-### Add Repository
+#### Add Repository
 
 Clone your GitHub repository and navigate to its directory:
 
@@ -136,12 +236,12 @@ pm2 start npm -n deploy -- start
 
 > for custom port `pm2 start npm -n deploy -- start -- -p 3001`
 
-## Adding SSH Key to GitHub
+### Adding SSH Key to GitHub
 
 1. Generate a SSH key:
 
 ```bash
-ssh-keygen -m PEMs
+ssh-keygen -m PEM
 ```
 
 2. Move the public key to authorized_keys:
