@@ -57,7 +57,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: rm -rf opub-deploy/.next; mv opub-deploy/.next2 opub-deploy/.next; pm2 restart opub-deploy
+          script: rm -rf opub-deploy/.next; mv opub-deploy/.next2 opub-deploy/.next; pm2 restart deploy
 ```
 
 > Replace all instances `opub-deploy` with your project name in EC2.
