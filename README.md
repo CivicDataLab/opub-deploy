@@ -155,7 +155,7 @@ cat ~/.ssh/id_rsa
 // Copy the content manually
 ```
 
-4. In GitHub, navigate to Organization > Settings > Secrets and variables > Actions
+4. In GitHub, navigate to Repository > Settings > Secrets and variables > Actions
 
 5. Create the following three secrets to allow GitHub to SSH into EC2:
 
